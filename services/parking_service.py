@@ -2,16 +2,27 @@ import datetime
 import math
 from models.car import Carro
 
+from database import cursor, connection
+
 # "banco de dados" na memória
 carrosEstacionados = []
 
-def cadastrarCarro(placa: str, cor: str, modelo: str):
+def cadastrarCarro(id: str, license_plate: str, model: str):
     for carro in carrosEstacionados:
-        if carro.placa == placa.upper():
+        if carro.license_plate == license_plate.upper():
             return {"erro": "Carro já cadastrado!"}, 400
 
-    novo_carro = Carro(placa, cor, modelo)
-    carrosEstacionados.append(novo_carro)
+    parked = True
+    novo_carro = Carro(id, license_plate, parked, model)
+
+    print(novo_carro.toDictionary())
+    insertCar = """
+    INSERT INTO cars_parked (id, license_plate, model, parked, created_at)
+    VALUES (%(id)s, %(license_plate)s, %(model)s, %(parked)s, %(created_at)s)
+    """
+    cursor.execute(insertCar, novo_carro.toDictionary())
+    connection.commit()
+
     return {"mensagem": "Carro cadastrado com sucesso!", "carro": novo_carro.toDictionary()}, 201
 
 def consultarCarros(placa: str = None):

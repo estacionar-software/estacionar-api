@@ -2,16 +2,18 @@ import datetime
 
 #Classe de um carro
 class Carro:
-    def __init__(self, placa: str, cor: str, modelo: str): #Atributos da classe Carro
+    def __init__(self, id: str, placa: str, parked: bool, modelo: str): #Atributos da classe Carro
+        self.id = id
         self.placa = placa.upper()
-        self.cor = cor
+        self.parked = parked
         self.modelo = modelo
         self.horarioEntrada = datetime.datetime.now()
 
-    def toDictionary(self): #Esse metodo pode ser usada para transformar o objeto em algo que o flask consegue serializar pro JSON
+    def toDictionary(self): #Esse metodo pode ser usado para transformar o objeto em algo que o flask consegue serializar pro JSON
         return {
-            "placa": self.placa,
-            "cor": self.cor,
-            "modelo": self.modelo,
-            "horarioEntrada": self.horarioEntrada.isoformat()
+            "id": self.id,
+            "license_plate": self.placa,
+            "parked": self.parked,
+            "model": self.modelo,
+            "created_at": self.horarioEntrada.isoformat()
         }
