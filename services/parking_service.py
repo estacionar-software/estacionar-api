@@ -4,35 +4,47 @@ from models.car import Carro
 
 from database import cursor, connection
 
-# "banco de dados" na memória
-carrosEstacionados = []
-
 def cadastrarCarro(id: str, license_plate: str, model: str):
-    for carro in carrosEstacionados:
-        if carro.license_plate == license_plate.upper():
-            return {"erro": "Carro já cadastrado!"}, 400
+    try:
+        searchVehicle = '''SELECT * FROM cars_parked WHERE license_plate = %s'''
+        cursor.execute(searchVehicle, (license_plate.upper(),))
+        res = cursor.fetchone()
 
-    parked = True
-    novo_carro = Carro(id, license_plate, parked, model)
+        if res:
+            return {"mensagem": "Carro já cadastrado!"}, 400
 
-    print(novo_carro.toDictionary())
-    insertCar = """
-    INSERT INTO cars_parked (id, license_plate, model, parked, created_at)
-    VALUES (%(id)s, %(license_plate)s, %(model)s, %(parked)s, %(created_at)s)
-    """
-    cursor.execute(insertCar, novo_carro.toDictionary())
-    connection.commit()
+        parked = True
+        novo_carro = Carro(id, license_plate, parked, model)
 
-    return {"mensagem": "Carro cadastrado com sucesso!", "carro": novo_carro.toDictionary()}, 201
+        insertCar = """
+        INSERT INTO cars_parked (id, license_plate, model, parked, created_at)
+        VALUES (%(id)s, %(license_plate)s, %(model)s, %(parked)s, %(created_at)s)
+        """
+        cursor.execute(insertCar, novo_carro.toDictionary())
+        connection.commit()
 
-def consultarCarros(placa: str = None):
-    if placa:
-        for carro in carrosEstacionados:
-            if carro.placa == placa.upper():
-                return carro.toDictionary(), 200
+        return {"mensagem": "Carro cadastrado com sucesso!", "carro": novo_carro.toDictionary()}, 201
+    except Exception as ex:
+        connection.rollback()
+        return {"mensagem": str(ex), "carro": None}, 400
+
+def consultarCarros(license_plate: str = None):
+    if license_plate:
+        searchVehicle = '''SELECT * FROM cars_parked WHERE license_plate = %s'''
+        cursor.execute(searchVehicle, (license_plate.upper(),))
+        res = cursor.fetchone()
+        if res:
+            columns = ['id', 'license_plate', 'model', 'parked', 'created_at']
+            carro_dict = dict(zip(columns, res))
+            return carro_dict, 200
+
         return {"erro": "Carro não encontrado"}, 404
 
-    return [carro.toDictionary() for carro in carrosEstacionados], 200
+    all_vehicles = '''SELECT * FROM cars_parked'''
+    cursor.execute(all_vehicles)
+    carros = cursor.fetchall()
+    columns = ['id', 'license_plate', 'model', 'parked', 'created_at']
+    return [dict(zip(columns, c)) for c in carros], 200
 
 def calcularValor(horarioEntrada: datetime.datetime):
     horaSaida = datetime.datetime.now()
