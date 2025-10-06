@@ -8,5 +8,3 @@ connection = mysql.connector.connect(
     password='estacionar123',
     database='estacionar-db'
 )
-
-cursor = connection.cursor()
