@@ -3,11 +3,14 @@ import math # Biblioteca para Operações Matematicas
 from models.car import Carro # Importando da pasta models do arquivo car, a classe Carro
 from database import connection # Importando o conector do banco de dados
 
+time_now = datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+
 def cadastrarCarro(id: str, license_plate: str, model: str): # Função para cadastrar carro novo no banco de dados
+    license_plate = license_plate.upper()
     try:
         with connection.cursor() as cursor: # Garante abertura e fechamento seguro do cursor
             search_vehicle = '''SELECT * FROM cars_parked WHERE license_plate = %s''' # Consulta sql, seleciona todos na table cars_parked onde license_plate seja igual ao license_plate digitado pelo user
-            cursor.execute(search_vehicle, (license_plate.upper(),)) # Executa a consulta sql passando a consulta de search_vehicle e a license plate que quero verificar
+            cursor.execute(search_vehicle, (license_plate,)) # Executa a consulta sql passando a consulta de search_vehicle e a license plate que quero verificar
             res = cursor.fetchone() # Retorna uma resposta
 
             if res: #se tem resposta
@@ -22,7 +25,7 @@ def cadastrarCarro(id: str, license_plate: str, model: str): # Função para cad
             """ # Insert no banco de dados
             cursor.execute(insert_car, novo_carro.toDictionary()) # Executa a mudança no banco de dados
             connection.commit() # Salva a mudança
-
+            print(f"[INFO]:[{time_now}] {novo_carro.modelo} de placa {license_plate} (ID: {novo_carro.id}) adicionado ao sistema.")
             return {"mensagem": "Carro cadastrado com sucesso!", "carro": novo_carro.toDictionary()}, 201 # Mensagem de sucesso
     except Exception as ex: # Se houver qualquer erro, retorna aqui.
         connection.rollback()
@@ -41,12 +44,16 @@ def consultarCarros(license_plate: str = None):
                     return {"mensagem": "Carro não encontrado"}, 404
 
                 carro_dict = dict(zip(columns, res))
+                print(f"[INFO]:[{time_now}] Consulta unitária realizada com sucesso!")
                 return carro_dict, 200
 
             all_vehicles = '''SELECT * FROM cars_parked'''
             cursor.execute(all_vehicles)
             results = cursor.fetchall()
             cars = [dict(zip(columns, car)) for car in results]
+            if not cars:
+                return {"mensagem": "Não há carros no sistema"}, 404
+            print(f"[INFO]:[{time_now}] Consulta realizada com sucesso!")
 
             return cars, 200
     except Exception as ex:
@@ -72,11 +79,24 @@ def calculate_price(enter_time: datetime.datetime):
 
     return {"valor": total_price, "tempo": f"{hours}h{minutes:02d}m"}
 
-def removerCarro(placa: str):
-    for carro in carrosEstacionados:
-        if carro.placa == placa.upper():
-            carrosEstacionados.remove(carro)
-            valor = calculate_price(carro.horarioEntrada)
-            return {"carro": carro.toDictionary(), "pagamento": valor}, 200
-    return {"erro": "Carro não encontrado"}, 404
+def removerCarro(license_plate: str):
+    columns = ['id', 'license_plate', 'model', 'parked', 'created_at']
+    try:
+        with connection.cursor() as cursor:
+            search_vehicle = '''SELECT * FROM cars_parked WHERE license_plate = %s'''
+            cursor.execute(search_vehicle, (license_plate.upper(),))
+            res = cursor.fetchone()
+            if not res:
+                return {"mensagem": "Carro não encontrado"}, 404
 
+            delete_car = '''DELETE FROM cars_parked WHERE id = %s;'''
+
+            car = dict(zip(columns, res))
+            cursor.execute(delete_car, (car['id'],))
+            connection.commit()
+        print(f"[INFO] {car['model']} de placa {license_plate} (ID: {car['id']}) removido do sistema")
+        return {"mensagem": "Veiculo excluído com sucesso."}, 200
+
+    except Exception as ex:
+        connection.rollback()
+        return {"mensagem": str(ex), "carro": None}, 400
