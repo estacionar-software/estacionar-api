@@ -5,26 +5,26 @@ from database import connection # Importando o conector do banco de dados
 
 def cadastrarCarro(id: str, license_plate: str, model: str): # Função para cadastrar carro novo no banco de dados
     try:
-        with connection.cursor() as cursor:
-            search_vehicle = '''SELECT * FROM cars_parked WHERE license_plate = %s'''
-            cursor.execute(search_vehicle, (license_plate.upper(),))
-            res = cursor.fetchone()
+        with connection.cursor() as cursor: # Garante abertura e fechamento seguro do cursor
+            search_vehicle = '''SELECT * FROM cars_parked WHERE license_plate = %s''' # Consulta sql, seleciona todos na table cars_parked onde license_plate seja igual ao license_plate digitado pelo user
+            cursor.execute(search_vehicle, (license_plate.upper(),)) # Executa a consulta sql passando a consulta de search_vehicle e a license plate que quero verificar
+            res = cursor.fetchone() # Retorna uma resposta
 
-            if res:
-                return {"mensagem": "Carro já cadastrado!"}, 400
+            if res: #se tem resposta
+                return {"mensagem": "Carro já cadastrado!"}, 400 # Mensagem de erro
 
-            parked = True
-            novo_carro = Carro(id, license_plate, parked, model)
+            parked = True # Deixamos parked como True, pois ele passou da verificação então é um registro novo
+            novo_carro = Carro(id, license_plate, parked, model) # Instanciamos a classe Carro para novo_carro passando todos os atributos
 
-            insert_car = """
+            insert_car = """ 
             INSERT INTO cars_parked (id, license_plate, model, parked, created_at)
             VALUES (%(id)s, %(license_plate)s, %(model)s, %(parked)s, %(created_at)s)
-            """
-            cursor.execute(insert_car, novo_carro.toDictionary())
-            connection.commit()
+            """ # Insert no banco de dados
+            cursor.execute(insert_car, novo_carro.toDictionary()) # Executa a mudança no banco de dados
+            connection.commit() # Salva a mudança
 
-            return {"mensagem": "Carro cadastrado com sucesso!", "carro": novo_carro.toDictionary()}, 201
-    except Exception as ex:
+            return {"mensagem": "Carro cadastrado com sucesso!", "carro": novo_carro.toDictionary()}, 201 # Mensagem de sucesso
+    except Exception as ex: # Se houver qualquer erro, retorna aqui.
         connection.rollback()
         return {"mensagem": str(ex), "carro": None}, 400
 
