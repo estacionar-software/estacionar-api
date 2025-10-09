@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 import uuid
-from services.parking_service import cadastrarCarro, consultarCarros, removerCarro
+from services.parking_service import cadastrarCarro, consultarCarros, removerCarro, update_car
 
 app = Flask(__name__) 
 
@@ -20,6 +20,13 @@ def listar():
 @app.route("/carros/<placa>", methods=["DELETE"])
 def remover(placa):
     resposta, status = removerCarro(placa)
+    return jsonify(resposta), status
+
+@app.route("/carros/<placa>", methods=["PUT"])
+def atualizar(placa):
+    dados = request.json
+    resposta, status = update_car(placa, dados["license_plate"], dados["model"])
+
     return jsonify(resposta), status
 
 if __name__ == "__main__":

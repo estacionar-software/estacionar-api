@@ -43,7 +43,16 @@ def consultarCarros(license_plate: str = None):
                 if not res:
                     return {"mensagem": "Carro não encontrado"}, 404
 
-                carro_dict = dict(zip(columns, res))
+                carro_dict = Carro(
+                    id = res[0],
+                    placa=res[1],
+                    parked = res[3],
+                    modelo=res[2],
+                    horario_entrada=res[4],
+                ).toDictionary()
+
+                print(carro_dict)
+
                 print(f"[INFO]:[{time_now}] Consulta unitária realizada com sucesso!")
                 return carro_dict, 200
 
@@ -60,8 +69,9 @@ def consultarCarros(license_plate: str = None):
         connection.rollback()
         return {"mensagem": str(ex), "carro": None}, 400
 
-def calculate_price(enter_time: datetime.datetime):
+def calculate_price(enter_time):
     exit_hour = datetime.datetime.now()
+    enter_time = datetime.datetime.strptime(enter_time, '%Y-%m-%dT%H:%M:%S')
     length_of_stay = exit_hour - enter_time
 
     total_seconds = int(length_of_stay.total_seconds())
@@ -69,18 +79,22 @@ def calculate_price(enter_time: datetime.datetime):
     minutes, _ = divmod(resto, 60)
 
     if total_seconds <= 1800:
-        return {"valor": 7, "tempo": f"{minutes} minutos"}
+        value = 7
+        time = f"{minutes} minutos"
+        return time, value, exit_hour
     elif total_seconds <= 10800:
-        return {"valor": 13, "tempo": f"{hours}h{minutes:02d}m"}
+        value = 13
+        time = f"{hours}h{minutes:02d}m"
+        return time, value, exit_hour
 
     overtime_in_seconds = total_seconds - 10800
     overtime = math.ceil(overtime_in_seconds / 3600)
     total_price = 13 + (overtime * 2)
+    total_time = f"{hours}h{minutes:02d}m"
 
-    return {"valor": total_price, "tempo": f"{hours}h{minutes:02d}m"}
+    return total_time, total_price, exit_hour
 
 def removerCarro(license_plate: str):
-    columns = ['id', 'license_plate', 'model', 'parked', 'created_at']
     try:
         with connection.cursor() as cursor:
             search_vehicle = '''SELECT * FROM cars_parked WHERE license_plate = %s'''
@@ -90,13 +104,84 @@ def removerCarro(license_plate: str):
                 return {"mensagem": "Carro não encontrado"}, 404
 
             delete_car = '''DELETE FROM cars_parked WHERE id = %s;'''
+            car = Carro(
+                id=res[0],
+                placa=res[1],
+                parked=res[3],
+                modelo=res[2],
+                horario_entrada=res[4],
+            ).toDictionary()
 
-            car = dict(zip(columns, res))
+            print(car)
+
+            total_time, total_price, exit_hour = calculate_price(car['created_at'])
+            car.update({
+                "total_price": total_price,
+                "total_time": total_time,
+                "exit_hour": exit_hour
+            })
             cursor.execute(delete_car, (car['id'],))
             connection.commit()
-        print(f"[INFO] {car['model']} de placa {license_plate} (ID: {car['id']}) removido do sistema")
-        return {"mensagem": "Veiculo excluído com sucesso."}, 200
+        print(f"[INFO]:[{time_now}] {car['model']} de placa {license_plate} (ID: {car['id']}) removido do sistema")
+        return {"message": "Veiculo excluído com sucesso.", "data": car }, 200
 
     except Exception as ex:
         connection.rollback()
-        return {"mensagem": str(ex), "carro": None}, 400
+        return {"message": str(ex), "carro": None}, 400
+
+def update_car(plate, new_license_plate: str, model: str):
+
+    try:
+        with connection.cursor() as cursor:
+            search_vehicle = '''SELECT * FROM cars_parked WHERE license_plate = %s'''
+            cursor.execute(search_vehicle, (plate.upper(),))
+            res = cursor.fetchone()
+
+            if not res:
+                return {"mensagem": "Carro não encontrado"}, 404
+
+            car = Carro(
+                id=res[0],
+                placa=res[1],
+                parked=res[3],
+                modelo=res[2],
+                horario_entrada=res[4],
+            ).toDictionary()
+
+            if new_license_plate and model:
+                update = """UPDATE cars_parked SET model = %s, license_plate = %s WHERE license_plate = %s"""
+                cursor.execute(update, (model, new_license_plate, plate))
+                connection.commit()
+
+                car.update({
+                    "license_plate": new_license_plate,
+                    "model": model
+                })
+
+                print(f"[INFO]:[{time_now}] ATUALIZAÇÃO DE MODELO E PLACA NO SISTEMA: (ID: {car['id']})")
+                return {"message": "Veiculo atualizado com sucesso.", "carro": car}, 200
+
+            if new_license_plate:
+
+                update = """UPDATE cars_parked SET license_plate = %s WHERE license_plate = %s"""
+                cursor.execute(update, (new_license_plate, plate))
+                connection.commit()
+
+                car.update({
+                    "license_plate": new_license_plate,
+                })
+
+            if model:
+                update = """UPDATE cars_parked SET model = %s WHERE license_plate = %s"""
+                cursor.execute(update, (model, plate))
+                connection.commit()
+
+                car.update({
+                    "model": model
+                })
+
+            print(f"[INFO]:[{time_now}] ATUALIZAÇÃO NO SISTEMA: (ID: {car['id']})")
+            return {"message": "Veiculo atualizado com sucesso.", "carro": car}, 200
+    except Exception as ex:
+        connection.rollback()
+        return {"message": str(ex), "carro": None}, 400
