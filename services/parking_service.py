@@ -2,8 +2,8 @@ import datetime # Biblioteca para horários
 import math # Biblioteca para Operações Matematicas
 from models.car import Carro # Importando da pasta models do arquivo car, a classe Carro
 from database import connection # Importando o conector do banco de dados
+from utils.car_helpers import from_db_to_car
 
-time_now = datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')
 
 def cadastrarCarro(id: str, license_plate: str, model: str): # Função para cadastrar carro novo no banco de dados
     license_plate = license_plate.upper()
@@ -25,7 +25,7 @@ def cadastrarCarro(id: str, license_plate: str, model: str): # Função para cad
             """ # Insert no banco de dados
             cursor.execute(insert_car, novo_carro.toDictionary()) # Executa a mudança no banco de dados
             connection.commit() # Salva a mudança
-            print(f"[INFO]:[{time_now}] {novo_carro.modelo} de placa {license_plate} (ID: {novo_carro.id}) adicionado ao sistema.")
+            print(f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] {novo_carro.modelo} de placa {license_plate} (ID: {novo_carro.id}) adicionado ao sistema.")
             return {"mensagem": "Carro cadastrado com sucesso!", "carro": novo_carro.toDictionary()}, 201 # Mensagem de sucesso
     except Exception as ex: # Se houver qualquer erro, retorna aqui.
         connection.rollback()
@@ -43,17 +43,11 @@ def consultarCarros(license_plate: str = None):
                 if not res:
                     return {"mensagem": "Carro não encontrado"}, 404
 
-                carro_dict = Carro(
-                    id = res[0],
-                    placa=res[1],
-                    parked = res[3],
-                    modelo=res[2],
-                    horario_entrada=res[4],
-                ).toDictionary()
+                carro_dict = from_db_to_car(res)
 
                 print(carro_dict)
 
-                print(f"[INFO]:[{time_now}] Consulta unitária realizada com sucesso!")
+                print(f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] Consulta unitária realizada com sucesso!")
                 return carro_dict, 200
 
             all_vehicles = '''SELECT * FROM cars_parked'''
@@ -62,7 +56,7 @@ def consultarCarros(license_plate: str = None):
             cars = [dict(zip(columns, car)) for car in results]
             if not cars:
                 return {"mensagem": "Não há carros no sistema"}, 404
-            print(f"[INFO]:[{time_now}] Consulta realizada com sucesso!")
+            print(f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] Consulta realizada com sucesso!")
 
             return cars, 200
     except Exception as ex:
@@ -104,15 +98,7 @@ def removerCarro(license_plate: str):
                 return {"mensagem": "Carro não encontrado"}, 404
 
             delete_car = '''DELETE FROM cars_parked WHERE id = %s;'''
-            car = Carro(
-                id=res[0],
-                placa=res[1],
-                parked=res[3],
-                modelo=res[2],
-                horario_entrada=res[4],
-            ).toDictionary()
-
-            print(car)
+            car = from_db_to_car(res)
 
             total_time, total_price, exit_hour = calculate_price(car['created_at'])
             car.update({
@@ -122,7 +108,7 @@ def removerCarro(license_plate: str):
             })
             cursor.execute(delete_car, (car['id'],))
             connection.commit()
-        print(f"[INFO]:[{time_now}] {car['model']} de placa {license_plate} (ID: {car['id']}) removido do sistema")
+        print(f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] {car['model']} de placa {license_plate} (ID: {car['id']}) removido do sistema")
         return {"message": "Veiculo excluído com sucesso.", "data": car }, 200
 
     except Exception as ex:
@@ -134,19 +120,19 @@ def update_car(plate, new_license_plate: str, model: str):
     try:
         with connection.cursor() as cursor:
             search_vehicle = '''SELECT * FROM cars_parked WHERE license_plate = %s'''
+            cursor.execute(search_vehicle, (new_license_plate.upper(),))
+            res = cursor.fetchone()
+
+            if res:
+                return {"mensagem": "Carro já cadastrado"}, 400
+
             cursor.execute(search_vehicle, (plate.upper(),))
             res = cursor.fetchone()
 
             if not res:
                 return {"mensagem": "Carro não encontrado"}, 404
 
-            car = Carro(
-                id=res[0],
-                placa=res[1],
-                parked=res[3],
-                modelo=res[2],
-                horario_entrada=res[4],
-            ).toDictionary()
+            car = from_db_to_car(res)
 
             if new_license_plate and model:
                 update = """UPDATE cars_parked SET model = %s, license_plate = %s WHERE license_plate = %s"""
@@ -154,21 +140,21 @@ def update_car(plate, new_license_plate: str, model: str):
                 connection.commit()
 
                 car.update({
-                    "license_plate": new_license_plate,
+                    "license_plate": new_license_plate.upper(),
                     "model": model
                 })
 
-                print(f"[INFO]:[{time_now}] ATUALIZAÇÃO DE MODELO E PLACA NO SISTEMA: (ID: {car['id']})")
+                print(f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] ATUALIZAÇÃO DE MODELO E PLACA NO SISTEMA: (ID: {car['id']})")
                 return {"message": "Veiculo atualizado com sucesso.", "carro": car}, 200
 
             if new_license_plate:
 
                 update = """UPDATE cars_parked SET license_plate = %s WHERE license_plate = %s"""
-                cursor.execute(update, (new_license_plate, plate))
+                cursor.execute(update, (new_license_plate.upper(), plate))
                 connection.commit()
 
                 car.update({
-                    "license_plate": new_license_plate,
+                    "license_plate": new_license_plate.upper(),
                 })
 
             if model:
@@ -180,7 +166,7 @@ def update_car(plate, new_license_plate: str, model: str):
                     "model": model
                 })
 
-            print(f"[INFO]:[{time_now}] ATUALIZAÇÃO NO SISTEMA: (ID: {car['id']})")
+            print(f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] ATUALIZAÇÃO NO SISTEMA: (ID: {car['id']})")
             return {"message": "Veiculo atualizado com sucesso.", "carro": car}, 200
     except Exception as ex:
         connection.rollback()
