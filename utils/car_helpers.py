@@ -1,6 +1,5 @@
 from models.car import Carro
 
-
 def from_db_to_car(res):
     return Carro(
         id=res[0],
