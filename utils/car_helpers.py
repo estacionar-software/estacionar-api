@@ -7,4 +7,5 @@ def from_db_to_car(res):
         parked=res[3],
         modelo=res[2],
         horario_entrada=res[4],
+        locale=res[5],
     ).toDictionary()

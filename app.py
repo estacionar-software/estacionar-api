@@ -11,7 +11,7 @@ CORS(app)
 def cadastrar():
     id = str(uuid.uuid4())
     dados = request.json
-    resposta, status = cadastrarCarro(id, dados["license_plate"], dados["model"])
+    resposta, status = cadastrarCarro(id, dados["license_plate"], dados["model"], dados["locale"])
     return jsonify(resposta), status
 
 @app.route("/carros", methods=["GET"])
@@ -28,7 +28,7 @@ def remover(placa):
 @app.route("/carros/<placa>", methods=["PUT"])
 def atualizar(placa):
     dados = request.json
-    resposta, status = update_car(placa, dados["license_plate"], dados["model"])
+    resposta, status = update_car(placa, dados["license_plate"], dados["model"], dados["locale"])
 
     return jsonify(resposta), status
 
