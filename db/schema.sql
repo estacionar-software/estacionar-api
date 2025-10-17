@@ -10,25 +10,21 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,N
 -- -----------------------------------------------------
 -- Schema estacionar-db
 -- -----------------------------------------------------
-
--- -----------------------------------------------------
--- Schema estacionar-db
--- -----------------------------------------------------
-CREATE SCHEMA IF NOT EXISTS `estacionar-db` DEFAULT CHARACTER SET utf8 ;
-USE `estacionar-db` ;
+CREATE SCHEMA IF NOT EXISTS `estacionar-db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE `estacionar-db`;
 
 -- -----------------------------------------------------
 -- Table `estacionar-db`.`cars_parked`
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `estacionar-db`.`cars_parked` (
-  `id` VARCHAR NOT NULL,
+  `id` VARCHAR(40) NOT NULL,
   `license_plate` VARCHAR(7) NOT NULL,
   `model` VARCHAR(80) NOT NULL,
   `parked` BOOLEAN NOT NULL DEFAULT 0,
-  `created_at` DATETIME NOT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE INDEX `ID_UNIQUE` (`id` ASC) VISIBLE);
-
+  UNIQUE INDEX `ID_UNIQUE` (`id` ASC) VISIBLE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
