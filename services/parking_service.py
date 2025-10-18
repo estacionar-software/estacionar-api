@@ -31,9 +31,9 @@ def cadastrarCarro(id: str, license_plate: str, model: str, locale: str): # Fun�
         connection.rollback()
         return {"mensagem": str(ex), "carro": None}, 400
 
-def consultarCarros(license_plate: str = None):
+def consultarCarros(license_plate: str = None, page: int = 1, limit: int = 10):
     columns = ['id', 'license_plate', 'model', 'parked', 'created_at', 'locale']
-
+    print(f"Página: {page}\nLimite: {limit}")
     try:
         with connection.cursor() as cursor:
             if license_plate:
@@ -49,16 +49,22 @@ def consultarCarros(license_plate: str = None):
 
                 print(f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] Consulta unitária realizada com sucesso!")
                 return carro_dict, 200
-
-            all_vehicles = '''SELECT * FROM cars_parked'''
-            cursor.execute(all_vehicles)
+            
+            offset = (page -1) * limit
+            all_vehicles = '''SELECT * FROM cars_parked LIMIT %s OFFSET %s'''
+            cursor.execute(all_vehicles, (limit, offset))
             results = cursor.fetchall()
             cars = [dict(zip(columns, car)) for car in results]
             if not cars:
                 return {"mensagem": "Não há carros no sistema"}, 404
             print(f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] Consulta realizada com sucesso!")
+            return {
+                "pagina": page,
+                "limite": limit,
+                "total": len(cars),
+                "carros": cars
+            }, 200
 
-            return cars, 200
     except Exception as ex:
         connection.rollback()
         return {"mensagem": str(ex), "carro": None}, 400
