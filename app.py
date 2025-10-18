@@ -1,11 +1,9 @@
 from flask import Flask, request, jsonify
 import uuid
 from services.parking_service import cadastrarCarro, consultarCarros, removerCarro, update_car
-from flask_cors import CORS
 
 app = Flask(__name__) 
 
-CORS(app)
 
 @app.route("/carros", methods=["POST"])
 def cadastrar():
@@ -17,7 +15,10 @@ def cadastrar():
 @app.route("/carros", methods=["GET"])
 def listar():
     placa = request.args.get("placa")
-    resposta, status = consultarCarros(placa)
+    page = request.args.get("page", default=1, type=int)
+    limit = request.args.get("limit", default=10, type=int)
+
+    resposta, status = consultarCarros(placa, page, limit)
     return jsonify(resposta), status
 
 @app.route("/carros/<placa>", methods=["DELETE"])
