@@ -55,13 +55,16 @@ def consultarCarros(license_plate: str = None, page: int = 1, limit: int = 10):
             cursor.execute(all_vehicles, (limit, offset))
             results = cursor.fetchall()
             cars = [dict(zip(columns, car)) for car in results]
+            total = '''SELECT COUNT(*) FROM cars_parked'''
+            cursor.execute(total)
+            total = cursor.fetchone()[0]
             if not cars:
                 return {"mensagem": "Não há carros no sistema"}, 404
             print(f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] Consulta realizada com sucesso!")
             return {
                 "pagina": page,
                 "limite": limit,
-                "total": len(cars),
+                "total": total,
                 "carros": cars
             }, 200
 
