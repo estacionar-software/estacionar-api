@@ -40,15 +40,20 @@ def consultarCarros(license_plate: str = None, page: int = 1, limit: int = 10):
                 searchVehicle = '''SELECT * FROM cars_parked WHERE license_plate = %s'''
                 cursor.execute(searchVehicle, (license_plate.upper(),))
                 res = cursor.fetchone()
+                cursor.fetchall() #Função adicionada para limpar o BUFFER do cursor
                 if not res:
                     return {"mensagem": "Carro não encontrado"}, 404
-
-                carro_dict = from_db_to_car(res)
-
+                
+                #Visto que na busca geral não passa o valor para from db eu removi a função pois no front a função de formatar data estava padronizado para o geral
+                #Necessário ver qual padrão iremos seguir!
+                carro_dict = [dict(zip(columns, res))]
                 print(carro_dict)
 
                 print(f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] Consulta unitária realizada com sucesso!")
-                return carro_dict, 200
+                return {
+                "carros": carro_dict,
+                "total": 1 #sempre retorna 1 pois a consulta é unitária
+                }, 200
             
             offset = (page -1) * limit
             all_vehicles = '''SELECT * FROM cars_parked LIMIT %s OFFSET %s'''
@@ -97,6 +102,8 @@ def calculate_price(enter_time):
 
     return total_time, total_price, exit_hour
 
+
+#necessário padronizar o created, deixar do jeito que o banco retorna no GetAll pois o front já trabalha com esse formato
 def removerCarro(license_plate: str):
     try:
         with connection.cursor() as cursor:
