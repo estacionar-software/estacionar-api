@@ -33,26 +33,21 @@ def cadastrarCarro(id: str, license_plate: str, model: str, locale: str): # Fun�
 
 def consultarCarros(license_plate: str = None, page: int = 1, limit: int = 10):
     columns = ['id', 'license_plate', 'model', 'parked', 'created_at', 'locale']
-    print(f"Página: {page}\nLimite: {limit}")
     try:
         with connection.cursor() as cursor:
             if license_plate:
-                searchVehicle = '''SELECT * FROM cars_parked WHERE license_plate = %s'''
-                cursor.execute(searchVehicle, (license_plate.upper(),))
+                search_vehicle = '''SELECT * FROM cars_parked WHERE license_plate = %s'''
+                cursor.execute(search_vehicle, (license_plate.upper(),))
                 res = cursor.fetchone()
-                cursor.fetchall() #Função adicionada para limpar o BUFFER do cursor
                 if not res:
                     return {"mensagem": "Carro não encontrado"}, 404
                 
-                #Visto que na busca geral não passa o valor para from db eu removi a função pois no front a função de formatar data estava padronizado para o geral
-                #Necessário ver qual padrão iremos seguir!
-                carro_dict = [dict(zip(columns, res))]
-                print(carro_dict)
+                carro_dict = from_db_to_car(res)
 
                 print(f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] Consulta unitária realizada com sucesso!")
                 return {
                 "carros": carro_dict,
-                "total": 1 #sempre retorna 1 pois a consulta é unitária
+                "total": 1
                 }, 200
             
             offset = (page -1) * limit
@@ -60,6 +55,9 @@ def consultarCarros(license_plate: str = None, page: int = 1, limit: int = 10):
             cursor.execute(all_vehicles, (limit, offset))
             results = cursor.fetchall()
             cars = [dict(zip(columns, car)) for car in results]
+            for car in cars:
+                if isinstance(car['created_at'], datetime.datetime):
+                    car['created_at'] = car['created_at'].strftime('%Y-%m-%dT%H:%M:%S')
             total = '''SELECT COUNT(*) FROM cars_parked'''
             cursor.execute(total)
             total = cursor.fetchone()[0]
@@ -79,9 +77,10 @@ def consultarCarros(license_plate: str = None, page: int = 1, limit: int = 10):
 
 def calculate_price(enter_time):
     exit_hour = datetime.datetime.now()
-    enter_time = datetime.datetime.strptime(enter_time, '%Y-%m-%dT%H:%M:%S')
-    length_of_stay = exit_hour - enter_time
+    if isinstance(enter_time, str):
+        enter_time = datetime.datetime.fromisoformat(enter_time)
 
+    length_of_stay = exit_hour - enter_time
     total_seconds = int(length_of_stay.total_seconds())
     hours, resto = divmod(total_seconds, 3600)
     minutes, _ = divmod(resto, 60)
@@ -89,21 +88,19 @@ def calculate_price(enter_time):
     if total_seconds <= 1800:
         value = 7
         time = f"{minutes} minutos"
-        return time, value, exit_hour
+        return time, value, exit_hour.strftime('%Y-%m-%dT%H:%M:%S')
     elif total_seconds <= 10800:
         value = 13
         time = f"{hours}h{minutes:02d}m"
-        return time, value, exit_hour
+        return time, value, exit_hour.strftime('%Y-%m-%dT%H:%M:%S')
 
     overtime_in_seconds = total_seconds - 10800
     overtime = math.ceil(overtime_in_seconds / 3600)
     total_price = 13 + (overtime * 2)
     total_time = f"{hours}h{minutes:02d}m"
 
-    return total_time, total_price, exit_hour
+    return total_time, total_price, exit_hour.strftime('%Y-%m-%dT%H:%M:%S')
 
-
-#necessário padronizar o created, deixar do jeito que o banco retorna no GetAll pois o front já trabalha com esse formato
 def removerCarro(license_plate: str):
     try:
         with connection.cursor() as cursor:
