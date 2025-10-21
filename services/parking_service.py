@@ -5,13 +5,16 @@ from database import connection # Importando o conector do banco de dados
 from utils.car_helpers import from_db_to_car
 
 
+def get_car_by_plate(cursor, plate: str):
+    cursor.execute('SELECT * FROM cars_parked WHERE license_plate = %s', (plate.upper(),))
+    res = cursor.fetchone()
+    return from_db_to_car(res) if res else None
+
 def cadastrarCarro(id: str, license_plate: str, model: str, locale: str): # Função para cadastrar carro novo no banco de dados
     license_plate = license_plate.upper()
     try:
         with connection.cursor() as cursor: # Garante abertura e fechamento seguro do cursor
-            search_vehicle = '''SELECT * FROM cars_parked WHERE license_plate = %s''' # Consulta sql, seleciona todos na table cars_parked onde license_plate seja igual ao license_plate digitado pelo user
-            cursor.execute(search_vehicle, (license_plate,)) # Executa a consulta sql passando a consulta de search_vehicle e a license plate que quero verificar
-            res = cursor.fetchone() # Retorna uma resposta
+            res = get_car_by_plate(cursor, license_plate)
 
             if res: #se tem resposta
                 return {"mensagem": "Carro já cadastrado!"}, 400 # Mensagem de erro
@@ -36,13 +39,9 @@ def consultarCarros(license_plate: str = None, page: int = 1, limit: int = 10):
     try:
         with connection.cursor() as cursor:
             if license_plate:
-                search_vehicle = '''SELECT * FROM cars_parked WHERE license_plate = %s'''
-                cursor.execute(search_vehicle, (license_plate.upper(),))
-                res = cursor.fetchone()
-                if not res:
+                carro_dict = get_car_by_plate(cursor, license_plate)
+                if not carro_dict:
                     return {"mensagem": "Carro não encontrado"}, 404
-                
-                carro_dict = from_db_to_car(res)
 
                 print(f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] Consulta unitária realizada com sucesso!")
                 return {
@@ -104,14 +103,11 @@ def calculate_price(enter_time):
 def removerCarro(license_plate: str):
     try:
         with connection.cursor() as cursor:
-            search_vehicle = '''SELECT * FROM cars_parked WHERE license_plate = %s'''
-            cursor.execute(search_vehicle, (license_plate.upper(),))
-            res = cursor.fetchone()
-            if not res:
+            car = get_car_by_plate(cursor, license_plate)
+            if not car:
                 return {"mensagem": "Carro não encontrado"}, 404
 
             delete_car = '''DELETE FROM cars_parked WHERE id = %s;'''
-            car = from_db_to_car(res)
 
             total_time, total_price, exit_hour = calculate_price(car['created_at'])
             car.update({
