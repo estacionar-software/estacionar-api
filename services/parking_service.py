@@ -3,12 +3,7 @@ import math # Biblioteca para Operações Matematicas
 from models.car import Carro # Importando da pasta models do arquivo car, a classe Carro
 from database import connection # Importando o conector do banco de dados
 from utils.car_helpers import from_db_to_car
-
-
-def get_car_by_plate(cursor, plate: str):
-    cursor.execute('SELECT * FROM cars_parked WHERE license_plate = %s', (plate.upper(),))
-    res = cursor.fetchone()
-    return from_db_to_car(res) if res else None
+from utils.db_functions import get_car_by_plate
 
 def cadastrarCarro(id: str, license_plate: str, model: str, locale: str): # Função para cadastrar carro novo no banco de dados
     license_plate = license_plate.upper()
@@ -38,6 +33,9 @@ def consultarCarros(license_plate: str = None, page: int = 1, limit: int = 10):
     columns = ['id', 'license_plate', 'model', 'parked', 'created_at', 'locale']
     try:
         with connection.cursor() as cursor:
+            total = '''SELECT COUNT(*) FROM cars_parked'''
+            cursor.execute(total)
+            total = cursor.fetchone()[0]
             if license_plate:
                 carro_dict = get_car_by_plate(cursor, license_plate)
                 if not carro_dict:
@@ -45,8 +43,12 @@ def consultarCarros(license_plate: str = None, page: int = 1, limit: int = 10):
 
                 print(f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] Consulta unitária realizada com sucesso!")
                 return {
-                "carros": [carro_dict],
-                "total": 1
+                "carros": [
+                    carro_dict
+                ],
+                "totalSearch": 1,
+                "totalVehicles": total,
+
                 }, 200
             
             offset = (page -1) * limit
@@ -57,16 +59,17 @@ def consultarCarros(license_plate: str = None, page: int = 1, limit: int = 10):
             for car in cars:
                 if isinstance(car['created_at'], datetime.datetime):
                     car['created_at'] = car['created_at'].strftime('%Y-%m-%dT%H:%M:%S')
-            total = '''SELECT COUNT(*) FROM cars_parked'''
-            cursor.execute(total)
-            total = cursor.fetchone()[0]
+
             if not cars:
                 return {"mensagem": "Não há carros no sistema"}, 404
+
             print(f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] Consulta realizada com sucesso!")
+
             return {
                 "pagina": page,
                 "limite": limit,
-                "total": total,
+                "totalVehicles": total,
+                "totalSearch": total,
                 "carros": cars
             }, 200
 
@@ -143,47 +146,28 @@ def update_car(plate, new_license_plate: str, model: str, new_locale: str):
 
             car = from_db_to_car(res)
 
-            if new_license_plate and model and new_locale:
-                update = """UPDATE cars_parked SET model = %s, locale = %s, license_plate = %s WHERE license_plate = %s"""
-                cursor.execute(update, (model, new_locale, new_license_plate, plate))
-                connection.commit()
-
-                car.update({
-                    "license_plate": new_license_plate.upper(),
-                    "model": model,
-                    "locale": new_locale
-                })
-
-                print(f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] ATUALIZAÇÃO DE MODELO, PLACA E LOCAL NO SISTEMA: (ID: {car['id']})")
-                return {"message": "Veiculo atualizado com sucesso.", "carro": car}, 200
+            updates = []
+            values = []
 
             if new_license_plate:
-
-                update = """UPDATE cars_parked SET license_plate = %s WHERE license_plate = %s"""
-                cursor.execute(update, (new_license_plate.upper(), plate))
-                connection.commit()
-
-                car.update({
-                    "license_plate": new_license_plate.upper(),
-                })
-
+                updates.append("license_plate = %s")
+                values.append(new_license_plate.upper())
+                car.update({"license_plate": new_license_plate.upper()})
             if model:
-                update = """UPDATE cars_parked SET model = %s WHERE license_plate = %s"""
-                cursor.execute(update, (model, plate))
-                connection.commit()
-
-                car.update({
-                    "model": model
-                })
-
+                updates.append("model = %s")
+                values.append(model)
+                car.update({"model": model})
             if new_locale:
-                update = """UPDATE cars_parked SET locale = %s WHERE license_plate = %s"""
-                cursor.execute(update, (new_locale, plate))
-                connection.commit()
+                updates.append("locale = %s")
+                values.append(new_locale)
+                car.update({"locale": new_locale})
 
-                car.update({
-                    "locale": new_locale
-                })
+            if updates:
+                sql = f"UPDATE cars_parked SET {', '.join(updates)} WHERE license_plate = %s"
+                values.append(plate.upper())
+                cursor.execute(sql, values)
+
+
 
             print(f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] ATUALIZAÇÃO NO SISTEMA: (ID: {car['id']})")
             return {"message": "Veiculo atualizado com sucesso.", "carro": car}, 200
