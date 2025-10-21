@@ -46,7 +46,7 @@ def consultarCarros(license_plate: str = None, page: int = 1, limit: int = 10):
 
                 print(f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] Consulta unitária realizada com sucesso!")
                 return {
-                "carros": carro_dict,
+                "carros": [carro_dict],
                 "total": 1
                 }, 200
             
