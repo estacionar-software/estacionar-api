@@ -20,12 +20,30 @@ CREATE TABLE IF NOT EXISTS `estacionar-db`.`cars_parked` (
   `id` VARCHAR(40) NOT NULL,
   `license_plate` VARCHAR(7) NOT NULL,
   `model` VARCHAR(80) NOT NULL,
-  `parked` BOOLEAN NOT NULL DEFAULT 0,
+  `parked` BOOLEAN NOT NULL DEFAULT 1,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `locale` VARCHAR(80) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `ID_UNIQUE` (`id` ASC) VISIBLE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- -----------------------------------------------------
+-- Table `estacionar-db`.`cars_parked_history`
+-- -----------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `cars_parked_history` (
+  id VARCHAR(40) NOT NULL UNIQUE,
+  car_id VARCHAR(40) NOT NULL,
+  license_plate VARCHAR(7) NOT NULL,
+  model VARCHAR(80) NOT NULL,
+  locale VARCHAR(80) NOT NULL,
+  parked BOOLEAN NOT NULL DEFAULT 0,
+  created_at DATETIME NOT NULL,
+  removed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  price INT NOT NULL,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

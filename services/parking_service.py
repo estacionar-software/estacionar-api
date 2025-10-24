@@ -1,9 +1,10 @@
 import datetime # Biblioteca para horários
 import math # Biblioteca para Operações Matematicas
 from models.car import Carro # Importando da pasta models do arquivo car, a classe Carro
-from database import connection # Importando o conector do banco de dados
+from db.database import connection # Importando o conector do banco de dados
 from utils.car_helpers import from_db_to_car
 from utils.db_functions import get_car_by_plate
+import uuid
 
 def cadastrarCarro(id: str, license_plate: str, model: str, locale: str): # Função para cadastrar carro novo no banco de dados
     license_plate = license_plate.upper()
@@ -120,7 +121,23 @@ def removerCarro(license_plate: str):
             })
             cursor.execute(delete_car, (car['id'],))
             connection.commit()
-        print(f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] {car['model']} de placa {license_plate} (ID: {car['id']}) removido do sistema")
+
+            car_parked_history = car.copy()
+
+            car_parked_history.update({
+                "car_id": car['id'],
+                "id": str(uuid.uuid4()),
+            })
+
+            insert_car = """ 
+                        INSERT INTO cars_parked_history (id, car_id, license_plate, model, locale, parked, created_at, removed_at, price)
+                        VALUES (%(id)s, %(car_id)s, %(license_plate)s, %(model)s, %(locale)s, %(parked)s, %(created_at)s, %(exit_hour)s, %(total_price)s)
+                        """  # Insert no banco de dados
+
+            cursor.execute(insert_car, car_parked_history)
+            connection.commit()
+        print(f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] {car['model']} de placa {license_plate} (ID: {car['id']}) removido do sistema ")
+        print(f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] ID REGISTRO HISTÓRICO {car_parked_history['id']} | {car_parked_history['model']} de placa {license_plate} (ID: {car_parked_history['car_id']}) arquivado no histórico.")
         return {"message": "Veiculo excluído com sucesso.", "data": car }, 200
 
     except Exception as ex:
