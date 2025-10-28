@@ -91,7 +91,7 @@ def removerCarro(license_plate: str):
 
 
 
-            total_time, total_price, exit_hour = calculate_price(car['created_at'])
+            total_time, total_price, exit_hour = calculate_price(car['created_at'], cursor)
             car.update({
                 "total_price": total_price,
                 "total_time": total_time,
