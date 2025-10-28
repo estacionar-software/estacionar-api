@@ -41,9 +41,23 @@ CREATE TABLE IF NOT EXISTS `cars_parked_history` (
   created_at DATETIME NOT NULL,
   removed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   price INT NOT NULL,
-  PRIMARY KEY (id)
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `ID_UNIQUE` (`id` ASC) VISIBLE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- -----------------------------------------------------
+-- Table `estacionar-db`.`parking_fees`
+-- -----------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `parking_fees` (
+  id VARCHAR(40) NOT NULL UNIQUE,
+  quick_stop_price INT NOT NULL,
+  until_time_price INT NOT NULL,
+  extra_hour_price INT NOT NULL,
+  tolerance_time INT NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `ID_UNIQUE` (`id` ASC) VISIBLE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;

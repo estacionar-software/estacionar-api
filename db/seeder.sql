@@ -76,3 +76,7 @@ VALUES
 ('d2k7e6f8-2345-4f67-8a89-b23456789012', 'BCD2S34', 'Toyota Prius', 1, '2025-10-14 15:37:47', 'Setor 17'),
 ('e3l8f7g9-3456-4a78-9b90-c34567890123', 'EFG3T45', 'Volkswagen Jetta', 1, '2025-10-14 15:38:36', 'Térreo 17'),
 ('f4m9g8h0-4567-4b89-8c01-d45678901234', 'HIJ4U56', 'Peugeot 307', 0, '2025-10-14 15:39:25', 'Subsolo 23');
+
+INSERT INTO parking_fees (id, quick_stop_price, until_time_price, extra_hour_price, tolerance_time)
+VALUES
+('4eae46cb-6e16-46d7-812d-aa224826ff8e', 5, 12, 1, 4);
