@@ -1,10 +1,13 @@
 from flask import Flask, request, jsonify
 import uuid
 from services.parking_service import cadastrarCarro, consultarCarros, removerCarro, update_car
+from services.parking_fees_service import create_price, get_price, update_price, delete_price
 from flask_cors import CORS
 app = Flask(__name__) 
 
 CORS(app)
+
+# ABAIXO, INICIA AS ROTAS PARA OS CARROS ESTACIONADOS.
 
 @app.route("/carros", methods=["POST"])
 def cadastrar():
@@ -34,5 +37,40 @@ def atualizar(placa):
 
     return jsonify(resposta), status
 
+# ABAIXO, INICIA AS ROTAS OS PREÇOS DE ESTACIONAMENTO.
+
+@app.route("/price-parking", methods=["POST"])
+def create_price_for_parking():
+    data = request.json
+    response, status = create_price(data["tolerance_time"], data["quick_stop_price"], data["until_time_price"], data["extra_hour_price"])
+    
+    return jsonify(response), status
+
+@app.route("/price-parking", methods=["GET"])
+def get_price_for_parking():
+    response, status = get_price()
+
+    return jsonify(response), status
+
+@app.route("/price-parking", methods=["PUT"])
+def update_price_for_parking():
+    data = request.json
+
+    response, status = update_price(
+        tolerance_time=data.get("tolerance_time"),
+        quick_stop_price=data.get("quick_stop_price"),
+        until_time_price=data.get("until_time_price"),
+        extra_hour_price=data.get("extra_hour_price")
+    )
+
+    return jsonify(response), status
+
+@app.route("/price-parking", methods=["DELETE"])
+def delete_price_for_parking():
+    response, status = delete_price()
+
+    return jsonify(response), status
+
+
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5001)
