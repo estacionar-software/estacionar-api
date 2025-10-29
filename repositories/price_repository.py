@@ -16,3 +16,8 @@ def insert_price_on_table_parking_fees(cursor, res):
     cursor.execute(command, res)
     return
 
+def delete_price_from_table_parking_fees(cursor):
+    command = '''DELETE FROM parking_fees;'''
+    cursor.execute(command)
+    return
+
