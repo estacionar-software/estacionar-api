@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 import uuid
 from services.parking_service import cadastrarCarro, consultarCarros, removerCarro, update_car
+from services.parking_fees_service import create_price, get_price, update_price, delete_price
 from flask_cors import CORS
 app = Flask(__name__) 
 
@@ -33,6 +34,34 @@ def atualizar(placa):
     resposta, status = update_car(placa, dados["license_plate"], dados["model"], dados["locale"])
 
     return jsonify(resposta), status
+
+@app.route("/price", methods=["POST"])
+def create_price_for_parking():
+    id = str(uuid.uuid4())
+    data = request.json
+    response, status = create_price(id, data["tolerance_time"], data["quick_stop_price"], data["until_time_price"], data["extra_hour_price"])
+    
+    return jsonify(response), status
+
+@app.route("/price", methods=["GET"])
+def get_price_for_parking():
+    response, status = get_price()
+
+    return jsonify(response), status
+
+@app.route("/price", methods=["PUT"])
+def update_price_for_parking():
+    data = request.json
+    response, status = update_price(data["tolerance_time"], data["quick_stop_price"], data["until_time_price"], data["extra_hour_price"])
+
+    return jsonify(response), status
+
+@app.route("/price", methods=["DELETE"])
+def delete_price_for_parking():
+    response, status = delete_price()
+
+    return jsonify(response), status
+
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
