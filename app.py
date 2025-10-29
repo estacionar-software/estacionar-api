@@ -7,6 +7,8 @@ app = Flask(__name__)
 
 CORS(app)
 
+# ABAIXO, INICIA AS ROTAS PARA OS CARROS ESTACIONADOS.
+
 @app.route("/carros", methods=["POST"])
 def cadastrar():
     id = str(uuid.uuid4())
@@ -35,11 +37,12 @@ def atualizar(placa):
 
     return jsonify(resposta), status
 
+# ABAIXO, INICIA AS ROTAS OS PREÇOS DE ESTACIONAMENTO.
+
 @app.route("/price", methods=["POST"])
 def create_price_for_parking():
-    id = str(uuid.uuid4())
     data = request.json
-    response, status = create_price(id, data["tolerance_time"], data["quick_stop_price"], data["until_time_price"], data["extra_hour_price"])
+    response, status = create_price(data["tolerance_time"], data["quick_stop_price"], data["until_time_price"], data["extra_hour_price"])
     
     return jsonify(response), status
 
@@ -64,4 +67,4 @@ def delete_price_for_parking():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5001)
