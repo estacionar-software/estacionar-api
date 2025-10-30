@@ -54,7 +54,8 @@ CREATE TABLE IF NOT EXISTS `parking_fees` (
   quick_stop_price INT NOT NULL,
   until_time_price INT NOT NULL,
   extra_hour_price INT NOT NULL,
-  tolerance_time INT NOT NULL,
+  quick_stop_limit_minutes INT NOT NULL,
+  parking_hours INT NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `ID_UNIQUE` (`id` ASC) VISIBLE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -42,7 +42,7 @@ def atualizar(placa):
 @app.route("/price-parking", methods=["POST"])
 def create_price_for_parking():
     data = request.json
-    response, status = create_price(data["tolerance_time"], data["quick_stop_price"], data["until_time_price"], data["extra_hour_price"])
+    response, status = create_price(data["parking_hours"], data["quick_stop_price"], data["until_time_price"], data["extra_hour_price"], data["quick_stop_limit_minutes"])
     
     return jsonify(response), status
 
@@ -57,9 +57,10 @@ def update_price_for_parking():
     data = request.json
 
     response, status = update_price(
-        tolerance_time=data.get("tolerance_time"),
+        parking_hours=data.get("parking_hours"),
         quick_stop_price=data.get("quick_stop_price"),
         until_time_price=data.get("until_time_price"),
+        quick_stop_limit_minutes=data.get("quick_stop_limit_minutes"),
         extra_hour_price=data.get("extra_hour_price")
     )
 

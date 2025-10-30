@@ -2,7 +2,7 @@ from models.price import Price
 from repositories.price_repository import list_prices, insert_price_on_table_parking_fees, delete_price_from_table_parking_fees
 from db.database import connection
 
-def create_price( tolerance_time: int, quick_stop_price: int, until_time_price: int, extra_hour_price: int):
+def create_price( parking_hours: int, quick_stop_price: int, until_time_price: int, extra_hour_price: int, quick_stop_limit_minutes: int):
     try:
         with connection.cursor() as cursor:
 
@@ -11,7 +11,7 @@ def create_price( tolerance_time: int, quick_stop_price: int, until_time_price: 
             if have_price:
                 return {"message": "Já possui um preço no sistema, não é possível incluir outro!"}, 401
 
-            prices = Price(quick_stop_price=quick_stop_price, until_time_price=until_time_price, extra_hour_price=extra_hour_price, tolerance_time=tolerance_time).to_dictionary()
+            prices = Price(quick_stop_price=quick_stop_price, until_time_price=until_time_price, extra_hour_price=extra_hour_price, quick_stop_limit_minutes=quick_stop_limit_minutes, parking_hours=parking_hours).to_dictionary()
 
             insert_price_on_table_parking_fees(cursor, prices)
             connection.commit()
@@ -32,7 +32,7 @@ def get_price():
         connection.rollback()
         return {"mensagem": str(ex), "prices": None}, 400
 
-def update_price(tolerance_time: int = None, quick_stop_price: int = None, until_time_price: int = None, extra_hour_price: int = None):
+def update_price(parking_hours: int = None, quick_stop_limit_minutes: int = None, quick_stop_price: int = None, until_time_price: int = None, extra_hour_price: int = None):
     try:
         with connection.cursor() as cursor:
             record_id = list_prices(cursor).pop('id')
@@ -40,10 +40,11 @@ def update_price(tolerance_time: int = None, quick_stop_price: int = None, until
                 return {"message": "ID não fornecido"}, 400
             # Campos que podem ser atualizados
             fields = {
-                "tolerance_time": tolerance_time,
+                "parking_hours": parking_hours,
                 "quick_stop_price": quick_stop_price,
                 "until_time_price": until_time_price,
-                "extra_hour_price": extra_hour_price
+                "extra_hour_price": extra_hour_price,
+                "quick_stop_limit_minutes": quick_stop_limit_minutes,
             }
             # Monta os campos que não são None
             set_clauses = []
