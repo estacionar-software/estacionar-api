@@ -59,6 +59,21 @@ CREATE TABLE IF NOT EXISTS `parking_fees` (
   UNIQUE INDEX `ID_UNIQUE` (`id` ASC) VISIBLE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- -----------------------------------------------------
+-- Table `estacionar-db`.`products_and_services`
+-- -----------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `products_and_services` (
+  id VARCHAR(40) NOT NULL UNIQUE,
+  title VARCHAR(50) NOT NULL,
+  description VARCHAR(255) NOT NULL,
+  unity INT,
+  price FLOAT NOT NULL,
+  type VARCHAR(15) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE INDEX `ID_UNIQUE` (`id` ASC) VISIBLE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 SET SQL_MODE=@OLD_SQL_MODE;
 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
