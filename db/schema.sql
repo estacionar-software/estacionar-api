@@ -68,9 +68,10 @@ CREATE TABLE IF NOT EXISTS `products_and_services` (
   id VARCHAR(40) NOT NULL UNIQUE,
   title VARCHAR(50) NOT NULL,
   description VARCHAR(255) NOT NULL,
-  unity INT,
+  amount INT,
   price FLOAT NOT NULL,
   type VARCHAR(15) NOT NULL,
+  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `ID_UNIQUE` (`id` ASC) VISIBLE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

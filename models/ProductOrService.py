@@ -1,6 +1,8 @@
+import uuid
+import datetime
 class ProductOrService:
-    def __init__(self, id, description, title, amount, price, type, created_at):
-        self.id = id
+    def __init__(self, description, title, amount, price, type, id = None, created_at = None):
+        self.id = id or str(uuid.uuid4())
         self.description = description
         self.title = title
         self.amount = amount
