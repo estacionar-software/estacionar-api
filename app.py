@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import uuid
 from services.parking_service import cadastrarCarro, consultarCarros, removerCarro, update_car
 from services.parking_fees_service import create_price, get_price, update_price, delete_price
+from services.products_and_services_service import create_product_or_service
 from flask_cors import CORS
 app = Flask(__name__) 
 
@@ -72,6 +73,14 @@ def delete_price_for_parking():
 
     return jsonify(response), status
 
+# PRODUTOS E SERVIÇOS
+
+@app.route("/products", methods=["POST"])
+def create_products_and_services():
+    id = str(uuid.uuid4())
+    data = request.json
+    response, status = create_product_or_service(id, data["description"], data["title"], data["amount"], data["price"], data["type"])
+    return jsonify(response), status
 
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
