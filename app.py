@@ -1,5 +1,7 @@
 from flask import Flask, request, jsonify
 import uuid
+
+from services.cars_logs_service import consult_cars_logs
 from services.parking_service import cadastrarCarro, consultarCarros, removerCarro, update_car
 from services.parking_fees_service import create_price, get_price, update_price, delete_price
 from services.products_and_services_service import create_product_or_service, get_product_or_service, update_product_or_service, delete_product_or_service
@@ -36,6 +38,16 @@ def atualizar(placa):
     dados = request.json
     resposta, status = update_car(placa, dados["license_plate"], dados["model"], dados["locale"])
 
+    return jsonify(resposta), status
+
+# ROTA PARA CONSEGUIR OS LOGS DE CARROS ANTERIORES
+@app.route("/cars-logs", methods=["GET"])
+def get_cars_logs():
+    placa = request.args.get("placa")
+    page = request.args.get("page", default=1, type=int)
+    limit = request.args.get("limit", default=10, type=int)
+
+    resposta, status = consult_cars_logs(placa, page, limit)
     return jsonify(resposta), status
 
 # ABAIXO, INICIA AS ROTAS OS PREÇOS DE ESTACIONAMENTO.
