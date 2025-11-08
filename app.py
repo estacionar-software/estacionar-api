@@ -95,10 +95,11 @@ def get_products_and_services():
     response, status = get_product_or_service()
     return jsonify(response), status
 
-@app.route("/products", methods=["PUT"])
-def update_products_and_services():
+@app.route("/products/<id>", methods=["PUT"])
+def update_products_and_services(id):
     data = request.json
     response, status = update_product_or_service(
+        id,
         title=data.get("title"),
         description=data.get("description"),
         amount=data.get("amount"),
