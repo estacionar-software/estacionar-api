@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 import uuid
 from services.parking_service import cadastrarCarro, consultarCarros, removerCarro, update_car
 from services.parking_fees_service import create_price, get_price, update_price, delete_price
-from services.products_and_services_service import create_product_or_service
+from services.products_and_services_service import create_product_or_service, get_product_or_service, update_product_or_service, delete_product_or_service
 from flask_cors import CORS
 app = Flask(__name__) 
 
@@ -44,13 +44,11 @@ def atualizar(placa):
 def create_price_for_parking():
     data = request.json
     response, status = create_price(data["parking_hours"], data["quick_stop_price"], data["until_time_price"], data["extra_hour_price"], data["quick_stop_limit_minutes"])
-    
     return jsonify(response), status
 
 @app.route("/price-parking", methods=["GET"])
 def get_price_for_parking():
     response, status = get_price()
-
     return jsonify(response), status
 
 @app.route("/price-parking", methods=["PUT"])
@@ -64,13 +62,11 @@ def update_price_for_parking():
         quick_stop_limit_minutes=data.get("quick_stop_limit_minutes"),
         extra_hour_price=data.get("extra_hour_price")
     )
-
     return jsonify(response), status
 
 @app.route("/price-parking", methods=["DELETE"])
 def delete_price_for_parking():
     response, status = delete_price()
-
     return jsonify(response), status
 
 # PRODUTOS E SERVIÇOS
@@ -80,6 +76,28 @@ def create_products_and_services():
     id = str(uuid.uuid4())
     data = request.json
     response, status = create_product_or_service(id, data["description"], data["title"], data["amount"], data["price"], data["type"])
+    return jsonify(response), status
+
+@app.route("/products", methods=["GET"])
+def get_products_and_services():
+    response, status = get_product_or_service()
+    return jsonify(response), status
+
+@app.route("/products", methods=["PUT"])
+def update_products_and_services():
+    data = request.json
+    response, status = update_product_or_service(
+        title=data.get("title"),
+        description=data.get("description"),
+        amount=data.get("amount"),
+        price=data.get("price"),
+        type=data.get("type")
+    )
+    return jsonify(response), status
+
+@app.route("/products/<id>", methods=["DELETE"])
+def delete_products_and_services(id):
+    response, status = delete_product_or_service(id)
     return jsonify(response), status
 
 if __name__ == "__main__":
