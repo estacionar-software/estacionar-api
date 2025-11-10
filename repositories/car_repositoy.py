@@ -22,3 +22,10 @@ def total_cars_parked(cursor):
 def remove_car_from_cars_parked(cursor, car_id):
     command = '''DELETE FROM cars_parked WHERE id = %s;'''
     cursor.execute(command, (car_id,))
+
+def search_cars_by_plate(cursor, plate: str, limit: int, offset: int):
+    command = '''SELECT * FROM cars_parked WHERE license_plate LIKE %s LIMIT %s OFFSET %s;'''
+    like_pattern = f"%{plate.upper()}%"
+    cursor.execute(command, (like_pattern, limit, offset))
+    results = cursor.fetchall()
+    return results if results else None

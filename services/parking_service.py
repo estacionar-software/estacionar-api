@@ -5,7 +5,7 @@ from models.car import Carro # Importando da pasta models do arquivo car, a clas
 
 from db.database import connection # Importando o conector do banco de dados
 
-from repositories.car_repositoy import find_by_plate, list_cars, total_cars_parked, remove_car_from_cars_parked
+from repositories.car_repositoy import find_by_plate, list_cars, total_cars_parked, remove_car_from_cars_parked, search_cars_by_plate
 
 from utils.price_calculator import calculate_price
 from utils.car_helpers import from_db_to_car
@@ -43,20 +43,20 @@ def consultarCarros(license_plate: str = None, page: int = 1, limit: int = 10):
         with connection.cursor() as cursor:
             total = total_cars_parked(cursor)
             if license_plate:
-                carro_dict = find_by_plate(cursor, license_plate)
-                if not carro_dict:
+                cars = [Carro(id=car[0], placa=car[1], modelo=car[2], parked=car[3], locale=car[5], horario_entrada=car[4]).toDictionary() for car in search_cars_by_plate(cursor, license_plate, limit, page)]
+                if not cars:
                     return {"message": "Carro não encontrado"}, 404
 
                 print(f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] Consulta unitária realizada com sucesso!")
                 return {
                 "carros": [
-                    carro_dict
+                    cars
                 ],
                 "totalSearch": 1,
                 "totalVehicles": total,
 
                 }, 200
-            
+
             offset = (page -1) * limit
             results = list_cars(cursor, limit, offset)
             cars = [dict(zip(columns, car)) for car in results]
