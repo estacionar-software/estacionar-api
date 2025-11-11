@@ -6,8 +6,7 @@ def list_prices(cursor):
 
     if not res:
         return None
-
-    return Price(res[0], res[1], res[2], res[3], res[4]).to_dictionary()
+    return Price(id=res[0], quick_stop_price=res[1], until_time_price=res[2], extra_hour_price=res[3], quick_stop_limit_minutes=res[4], parking_hours=res[5]).to_dictionary()
 
 def insert_price_on_table_parking_fees(cursor, res):
     command = '''INSERT INTO parking_fees (id, quick_stop_price, until_time_price, extra_hour_price, quick_stop_limit_minutes, parking_hours)
