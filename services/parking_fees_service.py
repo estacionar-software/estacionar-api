@@ -9,14 +9,14 @@ def create_price( parking_hours: int, quick_stop_price: int, until_time_price: i
             have_price = list_prices(cursor)
 
             if have_price:
-                return {"message": "Já possui um preço no sistema, não é possível incluir outro!"}, 401
+                return {"message": "Já possui um preço no sistema, não é possível incluir outro!"}, 403
 
             prices = Price(quick_stop_price=quick_stop_price, until_time_price=until_time_price, extra_hour_price=extra_hour_price, quick_stop_limit_minutes=quick_stop_limit_minutes, parking_hours=parking_hours).to_dictionary()
 
             insert_price_on_table_parking_fees(cursor, prices)
             connection.commit()
 
-            return {"message": "Preços adicionado ao sistema!"}, 200
+            return {"message": "Preços adicionado ao sistema!"}, 201
     except Exception as e:
         connection.rollback()
         return {"message": str(e)}, 400
@@ -68,7 +68,7 @@ def update_price(parking_hours: int = None, quick_stop_limit_minutes: int = None
 
     except Exception as ex:
         connection.rollback()
-        return {"message": str(ex), "prices": None}, 500
+        return {"message": str(ex), "prices": None},  400
 
     return {"message": "sucesso!"}, 200
 

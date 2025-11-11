@@ -8,7 +8,7 @@ def create_product_or_service(id, description = str, title = str, amount = int, 
             product = ProductOrService(id=id, description=description, title=title, amount=amount, price=price, type=type).to_dictionary()
             insert_product_or_service_on_table_products_and_services(cursor, product)
             connection.commit()            
-            return {"message": "Produto ou serviço adicionado ao sistema!"}, 200
+            return {"message": "Produto ou serviço adicionado ao sistema!"}, 201
 
     except Exception as e:
         connection.rollback()
@@ -39,7 +39,7 @@ def update_product_or_service(id, description: str = None, title: str = None, am
         with connection.cursor() as cursor:
             record_id = find_product_or_service_by_id(cursor, id)
             if not record_id:
-                return {"message": "ID não encontrado"}, 400
+                return {"message": "ID não encontrado"}, 404
             record_id = record_id.pop("id")
             # Campos que podem ser atualizados
             fields = {
@@ -58,7 +58,7 @@ def update_product_or_service(id, description: str = None, title: str = None, am
                     values.append(value)
 
             if not set_clauses:
-                return {"message": "Nenhum campo para atualizar"}, 400
+                return {"message": "Nenhum campo para atualizar"}, 404
 
             values.append(record_id)  # para o WHERE
             sql = f"UPDATE products_and_services SET {', '.join(set_clauses)} WHERE id = %s"
