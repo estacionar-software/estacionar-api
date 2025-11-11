@@ -5,13 +5,6 @@ def find_by_plate(cursor, plate: str):
     res = cursor.fetchone()
     return from_db_to_car(res) if res else None
 
-def list_cars(cursor, limit, offset):
-    command = '''SELECT * FROM cars_parked LIMIT %s OFFSET %s'''
-    cursor.execute(command, (limit, offset))
-    results = cursor.fetchall()
-
-    return results
-
 def total_cars_parked(cursor):
     command = '''SELECT COUNT(*) FROM cars_parked'''
     cursor.execute(command)
@@ -23,8 +16,21 @@ def remove_car_from_cars_parked(cursor, car_id):
     command = '''DELETE FROM cars_parked WHERE id = %s;'''
     cursor.execute(command, (car_id,))
 
-def search_cars_by_plate(cursor, plate: str, limit: int, offset: int):
-    command = '''SELECT * FROM cars_parked WHERE license_plate LIKE %s LIMIT %s OFFSET %s;'''
+def list_cars(cursor, limit, offset, order: str):
+    order = order.upper()
+
+    command = f'''SELECT * FROM cars_parked ORDER BY created_at {order} LIMIT %s OFFSET %s'''
+    cursor.execute(command, (limit, offset))
+    results = cursor.fetchall()
+    return results
+
+
+def search_cars_by_plate(cursor, plate: str, limit: int, offset: int, order: str):
+    order = order.upper()
+    command = f'''SELECT * FROM cars_parked 
+                  WHERE license_plate LIKE %s 
+                  ORDER BY created_at {order} 
+                  LIMIT %s OFFSET %s;'''
     like_pattern = f"%{plate.upper()}%"
     cursor.execute(command, (like_pattern, limit, offset))
     results = cursor.fetchall()

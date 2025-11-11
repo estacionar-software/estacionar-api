@@ -37,29 +37,40 @@ def cadastrarCarro(id: str, license_plate: str, model: str, locale: str): # Fun�
         connection.rollback()
         return {"mensagem": str(ex), "carro": None}, 400
 
-def consultarCarros(license_plate: str = None, page: int = 1, limit: int = 10):
+def consultarCarros(order: str, license_plate: str = None, page: int = 1, limit: int = 10):
     columns = ['id', 'license_plate', 'model', 'parked', 'created_at', 'locale']
     try:
         with connection.cursor() as cursor:
             total = total_cars_parked(cursor)
+            offset = (page - 1) * limit
+
             if license_plate:
-                offset = (page - 1) * limit
-                cars = [Carro(id=car[0], placa=car[1], modelo=car[2], parked=car[3], locale=car[5], horario_entrada=car[4]).toDictionary() for car in search_cars_by_plate(cursor, license_plate, limit, offset)]
-                print(cars)
+                cars = [
+                    Carro(
+                        id=car[0],
+                        placa=car[1],
+                        modelo=car[2],
+                        parked=car[3],
+                        locale=car[5],
+                        horario_entrada=car[4]
+                    ).toDictionary()
+                    for car in search_cars_by_plate(cursor, license_plate, limit, offset, order)
+                ]
+
                 if not cars:
                     return {"message": "Carro não encontrado"}, 404
 
                 print(f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] Consulta unitária realizada com sucesso!")
                 return {
-                "carros": cars,
-                "totalSearch": len(cars),
-                "totalVehicles": total,
-
+                    "carros": cars,
+                    "totalSearch": len(cars),
+                    "totalVehicles": total,
+                    "order": order.upper()
                 }, 200
 
-            offset = (page -1) * limit
-            results = list_cars(cursor, limit, offset)
+            results = list_cars(cursor, limit, offset, order)
             cars = [dict(zip(columns, car)) for car in results]
+
             for car in cars:
                 if isinstance(car['created_at'], datetime.datetime):
                     car['created_at'] = car['created_at'].strftime('%Y-%m-%dT%H:%M:%S')
@@ -74,6 +85,7 @@ def consultarCarros(license_plate: str = None, page: int = 1, limit: int = 10):
                 "limite": limit,
                 "totalVehicles": total,
                 "totalSearch": total,
+                "order": order.upper(),
                 "carros": cars
             }, 200
 

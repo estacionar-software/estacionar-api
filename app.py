@@ -24,8 +24,9 @@ def listar():
     placa = request.args.get("placa")
     page = request.args.get("page", default=1, type=int)
     limit = request.args.get("limit", default=10, type=int)
+    order = request.args.get("order", default="DESC", type=str)
 
-    resposta, status = consultarCarros(placa, page, limit)
+    resposta, status = consultarCarros(order, placa, page, limit)
     return jsonify(resposta), status
 
 @app.route("/carros/<placa>", methods=["DELETE"])
