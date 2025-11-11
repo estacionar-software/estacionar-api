@@ -3,13 +3,14 @@ from repositories.car_logs_repository import total_cars_logs, find_by_plate_on_h
 import datetime
 
 
-def consult_cars_logs(license_plate: str = None, page: int = 1, limit: int = 10):
+def consult_cars_logs(order = str, license_plate: str = None, page: int = 1, limit: int = 10):
         try:
             columns = ['id', 'car_id', 'license_plate', 'model', 'locale', 'parked', 'created_at', 'removed_at', 'price']
+            offset = (page - 1) * limit
             with connection.cursor() as cursor:
                 total = total_cars_logs(cursor)
                 if license_plate:
-                    carro_dict = find_by_plate_on_history(cursor, license_plate)
+                    carro_dict = find_by_plate_on_history(cursor, plate=license_plate, limit=limit , offset=offset, order=order)
                     if not carro_dict:
                         return {"message": "Carro não encontrado"}, 404
 
@@ -19,13 +20,14 @@ def consult_cars_logs(license_plate: str = None, page: int = 1, limit: int = 10)
                         "carros": [
                             carro_dict
                         ],
-                        "totalSearch": 1,
+                        "order": order,
+                        "totalSearch": len(carro_dict),
                         "totalVehicles": total,
 
                     }, 200
 
                 offset = (page - 1) * limit
-                results = list_cars_history(cursor, limit, offset)
+                results = list_cars_history(cursor, limit, offset, order)
 
 
                 cars = [dict(zip(columns, car)) for car in results]
@@ -45,6 +47,7 @@ def consult_cars_logs(license_plate: str = None, page: int = 1, limit: int = 10)
                 return {
                     "pagina": page,
                     "limite": limit,
+                    "order": order,
                     "totalVehicles": total,
                     "totalSearch": total,
                     "carros": cars

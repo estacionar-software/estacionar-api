@@ -47,8 +47,9 @@ def get_cars_logs():
     placa = request.args.get("placa")
     page = request.args.get("page", default=1, type=int)
     limit = request.args.get("limit", default=10, type=int)
+    order = request.args.get("order", default="DESC", type=str)
 
-    resposta, status = consult_cars_logs(placa, page, limit)
+    resposta, status = consult_cars_logs(order, placa, page, limit)
     return jsonify(resposta), status
 
 # ABAIXO, INICIA AS ROTAS OS PREÇOS DE ESTACIONAMENTO.
