@@ -28,4 +28,4 @@ def search_cars_by_plate(cursor, plate: str, limit: int, offset: int):
     like_pattern = f"%{plate.upper()}%"
     cursor.execute(command, (like_pattern, limit, offset))
     results = cursor.fetchall()
-    return results if results else None
+    return results if results else []

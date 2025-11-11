@@ -43,7 +43,8 @@ def consultarCarros(license_plate: str = None, page: int = 1, limit: int = 10):
         with connection.cursor() as cursor:
             total = total_cars_parked(cursor)
             if license_plate:
-                cars = [Carro(id=car[0], placa=car[1], modelo=car[2], parked=car[3], locale=car[5], horario_entrada=car[4]).toDictionary() for car in search_cars_by_plate(cursor, license_plate, limit, page)]
+                offset = (page - 1) * limit
+                cars = [Carro(id=car[0], placa=car[1], modelo=car[2], parked=car[3], locale=car[5], horario_entrada=car[4]).toDictionary() for car in search_cars_by_plate(cursor, license_plate, limit, offset)]
                 if not cars:
                     return {"message": "Carro não encontrado"}, 404
 
