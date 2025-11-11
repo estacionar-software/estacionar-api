@@ -45,15 +45,14 @@ def consultarCarros(license_plate: str = None, page: int = 1, limit: int = 10):
             if license_plate:
                 offset = (page - 1) * limit
                 cars = [Carro(id=car[0], placa=car[1], modelo=car[2], parked=car[3], locale=car[5], horario_entrada=car[4]).toDictionary() for car in search_cars_by_plate(cursor, license_plate, limit, offset)]
+                print(cars)
                 if not cars:
                     return {"message": "Carro não encontrado"}, 404
 
                 print(f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] Consulta unitária realizada com sucesso!")
                 return {
-                "carros": [
-                    cars
-                ],
-                "totalSearch": 1,
+                "carros": cars,
+                "totalSearch": len(cars),
                 "totalVehicles": total,
 
                 }, 200
