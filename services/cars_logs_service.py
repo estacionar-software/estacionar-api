@@ -10,18 +10,17 @@ def consult_cars_logs(order = str, license_plate: str = None, page: int = 1, lim
             with connection.cursor() as cursor:
                 total = total_cars_logs(cursor)
                 if license_plate:
-                    carro_dict = find_by_plate_on_history(cursor, plate=license_plate, limit=limit , offset=offset, order=order)
-                    if not carro_dict:
-                        return {"message": "Carro não encontrado"}, 404
+                    car = [dict(zip(columns, car)) for car in find_by_plate_on_history(cursor, plate=license_plate, limit=limit , offset=offset, order=order)]
+                    if not car:
+                        return {"message": "Registro não encontrado"}, 404
 
                     print(
                         f"[INFO]:[{datetime.datetime.now().strftime('%d/%m/%Y %H:%M:%S')}] Consulta unitária realizada com sucesso!")
                     return {
-                        "carros": [
-                            carro_dict
-                        ],
+                        "carros":
+                            car,
                         "order": order,
-                        "totalSearch": len(carro_dict),
+                        "totalSearch": len(car),
                         "totalVehicles": total,
 
                     }, 200
