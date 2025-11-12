@@ -2,7 +2,7 @@ import pytest
 import requests
 
 BASE_URL = "http://127.0.0.1:5001"
-car_plate = "JHS2131"
+car_plate = "JSX2132"
 model = "Toyota Yaris"
 locale = "Setor 5"
 

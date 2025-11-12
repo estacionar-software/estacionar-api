@@ -1,11 +1,13 @@
 from models.price import Price
 
 def list_prices(cursor):
+    print("to aq")
     cursor.execute('''SELECT * FROM parking_fees''')
     res = cursor.fetchone()
 
-    if not res:
+    if res is None:
         return None
+
     return Price(id=res[0], quick_stop_price=res[1], until_time_price=res[2], extra_hour_price=res[3], quick_stop_limit_minutes=res[4], parking_hours=res[5]).to_dictionary()
 
 def insert_price_on_table_parking_fees(cursor, res):

@@ -101,9 +101,11 @@ def removerCarro(license_plate: str):
             if not car:
                 return {"message": "Carro não encontrado"}, 404
 
-
-
             total_time, total_price, exit_hour = calculate_price(car['created_at'], cursor)
+
+            if total_time is None and total_price is None and exit_hour is None:
+                return {"message": "Não há preços cadastrados!"}, 400
+
             car.update({
                 "total_price": total_price,
                 "total_time": total_time,

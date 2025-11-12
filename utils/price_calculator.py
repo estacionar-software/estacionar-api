@@ -5,6 +5,13 @@ from repositories.price_repository import list_prices
 def calculate_price(enter_time, cursor):
 
     res = list_prices(cursor)
+
+    if res is None:
+        time = None
+        value = None
+        exit_hour = None
+        return time, value, exit_hour
+
     hours_in_seconds = datetime.timedelta(hours=res['parking_hours'])
     hours_in_seconds = hours_in_seconds.total_seconds()
 
