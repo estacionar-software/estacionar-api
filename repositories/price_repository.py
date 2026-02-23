@@ -1,7 +1,6 @@
 from models.price import Price
 
 def list_prices(cursor):
-    print("to aq")
     cursor.execute('''SELECT * FROM parking_fees''')
     res = cursor.fetchone()
 

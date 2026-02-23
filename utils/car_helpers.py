@@ -1,4 +1,4 @@
-from models.car import Carro
+from models.vehicle import Vehicle
 import datetime
 
 def from_db_to_car(res):
@@ -12,7 +12,7 @@ def from_db_to_car(res):
             #caso venha com milissegundos
             created_at = datetime.datetime.strptime(created_at, "%Y-%m-%d %H:%M:%S.%f")
 
-    carro = Carro(
+    carro = Vehicle(
         id=res[0],
         placa=res[1],
         parked=res[3],

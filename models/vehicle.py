@@ -1,7 +1,7 @@
 import datetime
 
 #Classe de um carro
-class Carro:
+class Vehicle:
     def __init__(self, id: str, placa: str, parked: bool, modelo: str, locale: str, horario_entrada: datetime.datetime = None): #Atributos da classe Carro
         self.id = id
         self.placa = placa.upper()

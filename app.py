@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 import uuid
 
 from services.cars_logs_service import consult_cars_logs
-from services.parking_service import cadastrarCarro, consultarCarros, removerCarro, update_car
+from services.parking_service import post_vehicle, read_vehicles, remove_vehicle, update_vehicle
 from services.parking_fees_service import create_price, get_price, update_price, delete_price
 from services.products_and_services_service import create_product_or_service, get_product_or_service, update_product_or_service, delete_product_or_service
 from flask_cors import CORS
@@ -12,45 +12,45 @@ CORS(app)
 
 # ABAIXO, INICIA AS ROTAS PARA OS CARROS ESTACIONADOS.
 
-@app.route("/carros", methods=["POST"])
+@app.route("/vehicles", methods=["POST"])
 def cadastrar():
     id = str(uuid.uuid4())
     dados = request.json
-    resposta, status = cadastrarCarro(id, dados["license_plate"], dados["model"], dados["locale"])
-    return jsonify(resposta), status
+    response, status = post_vehicle(id, dados["license_plate"], dados["model"], dados["locale"])
+    return jsonify(response), status
 
-@app.route("/carros", methods=["GET"])
+@app.route("/vehicles", methods=["GET"])
 def listar():
-    placa = request.args.get("placa")
+    plate = request.args.get("plate")
     page = request.args.get("page", default=1, type=int)
     limit = request.args.get("limit", default=10, type=int)
     order = request.args.get("order", default="DESC", type=str)
 
-    resposta, status = consultarCarros(order, placa, page, limit)
-    return jsonify(resposta), status
+    response, status = read_vehicles(order, plate, page, limit)
+    return jsonify(response), status
 
-@app.route("/carros/<placa>", methods=["DELETE"])
-def remover(placa):
-    resposta, status = removerCarro(placa)
-    return jsonify(resposta), status
+@app.route("/vehicles/<plate>", methods=["DELETE"])
+def remover(plate):
+    response, status = remove_vehicle(plate)
+    return jsonify(response), status
 
-@app.route("/carros/<placa>", methods=["PUT"])
-def atualizar(placa):
-    dados = request.json
-    resposta, status = update_car(placa, dados["license_plate"], dados["model"], dados["locale"])
+@app.route("/vehicles/<plate>", methods=["PUT"])
+def atualizar(plate):
+    data = request.json
+    response, status = update_vehicle(plate, data["license_plate"], data["model"], data["locale"])
 
-    return jsonify(resposta), status
+    return jsonify(response), status
 
 # ROTA PARA CONSEGUIR OS LOGS DE CARROS ANTERIORES
-@app.route("/cars-logs", methods=["GET"])
+@app.route("/vehicles-logs", methods=["GET"])
 def get_cars_logs():
-    placa = request.args.get("placa")
+    plate = request.args.get("plate")
     page = request.args.get("page", default=1, type=int)
     limit = request.args.get("limit", default=10, type=int)
     order = request.args.get("order", default="DESC", type=str)
 
-    resposta, status = consult_cars_logs(order, placa, page, limit)
-    return jsonify(resposta), status
+    response, status = consult_cars_logs(order, plate, page, limit)
+    return jsonify(response), status
 
 # ABAIXO, INICIA AS ROTAS OS PREÇOS DE ESTACIONAMENTO.
 
