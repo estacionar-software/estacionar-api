@@ -6,7 +6,7 @@ export const app = fastify({
 
 })
 
-app.register(vehiclesRoutes, { prefix: "/vehicles" });
+app.register(vehiclesRoutes, { prefix: "/vehicle" });
 
 app.get("/ping", async () =>{
     return { 

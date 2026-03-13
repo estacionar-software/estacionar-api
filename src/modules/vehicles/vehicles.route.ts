@@ -2,7 +2,7 @@ import { FastifyInstance } from "fastify";
 import { createVehicleController } from "./vehicles.controller";
 
 export async function vehiclesRoutes(app: FastifyInstance) {
-    app.post("/vehicles", {
+    app.post("/     ", {
         schema: {
             body: {
                 type: "object",
