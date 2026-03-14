@@ -1,4 +1,4 @@
-import { db } from "../../database";
+import { db } from "../../lib/prisma";
 
 export interface CreateVehicleDTO {
     licensePlate: string;

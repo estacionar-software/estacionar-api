@@ -27,6 +27,32 @@ CREATE TRIGGER tg_tenants_updated_at
 BEFORE UPDATE ON tenants
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
+
+
+-- ======================================================================
+-- USUÁRIOS (Donos e Funcionários dos Estacionamentos)
+-- ======================================================================
+CREATE TABLE users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL, 
+    role VARCHAR(20) DEFAULT 'operator', 
+    is_active BOOLEAN DEFAULT TRUE,
+    
+    token_version INTEGER DEFAULT 0, 
+    
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TRIGGER tg_users_updated_at
+BEFORE UPDATE ON users
+FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE INDEX idx_users_email ON users(email);
+
 -- ======================================================================
 -- SESSÕES DE ESTACIONAMENTO (cars_parked e cars_parked_history numa só tabela)
 -- ======================================================================
@@ -95,27 +121,3 @@ BEFORE UPDATE ON products_services
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 CREATE INDEX idx_products_tenant ON products_services(tenant_id);
-
--- ======================================================================
--- USUÁRIOS (Donos e Funcionários dos Estacionamentos)
--- ======================================================================
-CREATE TABLE users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(150) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL, 
-    role VARCHAR(20) DEFAULT 'operator', 
-    is_active BOOLEAN DEFAULT TRUE,
-    
-    token_version INTEGER DEFAULT 0, 
-    
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TRIGGER tg_users_updated_at
-BEFORE UPDATE ON users
-FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-
-CREATE INDEX idx_users_email ON users(email);

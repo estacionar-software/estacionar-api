@@ -14,6 +14,7 @@ export async function AuthController(req: FastifyRequest, res: FastifyReply) {
             message: "Tenant created successfully"
         });
     } catch (error) {
+        console.log("error: ", error);
         return res.status(400).send({
             message: "Error creating tenant"
         });

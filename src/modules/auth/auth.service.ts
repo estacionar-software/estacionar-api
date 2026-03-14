@@ -18,6 +18,7 @@ export interface CreateTenantDTO {
 
 export class AuthService {
     async registerTenant(data: CreateTenantDTO){
+
         const emailExists = await prisma.user.findUnique({
             where: {
                 email: data.adminData.email,
