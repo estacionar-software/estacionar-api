@@ -7,4 +7,5 @@ export const env = {
   dbPassword: process.env.DB_PASSWORD || '',
   dbName: process.env.DB_NAME || 'postgres',
   port: Number(process.env.PORT) || 3000,
+  dbUrl: process.env.DATABASE_URL || '',
 };

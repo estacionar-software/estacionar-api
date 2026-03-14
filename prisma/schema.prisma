@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 // Enums para travar as regras de negócio
@@ -21,7 +22,7 @@ enum ProductType {
 model Tenant {
   id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   businessName    String           @map("business_name") @db.VarChar(100)
-  document        String?          @db.VarChar(20)
+  document        String          @unique @db.VarChar(20)
   isActive        Boolean          @default(true) @map("is_active")
   createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz()
