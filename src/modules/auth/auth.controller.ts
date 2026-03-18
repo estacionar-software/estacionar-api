@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { AuthService,  CreateTenantDTO} from "./auth.service";
+import { AuthService,  CreateTenantDTO} from "./auth.service.js";
 
 const authService = new AuthService();
 
@@ -16,7 +16,7 @@ export async function AuthController(req: FastifyRequest, res: FastifyReply) {
     } catch (error) {
         console.log("error: ", error);
         return res.status(400).send({
-            message: "Error creating tenant"
+            message: error instanceof Error ? error.message : "An error occurred while creating the tenant"
         });
     }
 }

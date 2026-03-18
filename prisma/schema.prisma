@@ -1,14 +1,11 @@
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
-// Enums para travar as regras de negócio
 enum Role {
   SUPER_ADMIN // Você (Acesso total, tenantId nulo)
   ADMIN       // Dono do estacionamento
@@ -21,37 +18,34 @@ enum ProductType {
 }
 
 model Tenant {
-  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  businessName    String           @map("business_name") @db.VarChar(100)
-  document        String          @unique @db.VarChar(20)
-  isActive        Boolean          @default(true) @map("is_active")
-  createdAt       DateTime         @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamptz()
-
-  // Relacionamentos
-  users           User[]
-  sessions        ParkingSession[]
-  prices          ParkingPrice?    // Relação 1 para 1
-  products        ProductService[]
+  id           String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  businessName String           @map("business_name") @db.VarChar(100)
+  document     String?          @db.VarChar(20) @unique
+  isActive     Boolean?         @default(true) @map("is_active")
+  createdAt    DateTime         @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime         @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  prices       ParkingPrice?
+  sessions     ParkingSession[]
+  products     ProductService[]
+  users        User[]
 
   @@map("tenants")
 }
 
 model User {
-  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenantId       String?  @map("tenant_id") @db.Uuid // Opcional para suportar o SUPER_ADMIN
-  name           String   @db.VarChar(100)
-  email          String   @unique @db.VarChar(150)
-  passwordHash   String   @map("password_hash") @db.VarChar(255)
-  role           Role     @default(OPERATOR)
-  isActive       Boolean  @default(true) @map("is_active")
-  tokenVersion   Int      @default(0) @map("token_version")
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId     String   @map("tenant_id") @db.Uuid
+  name         String   @db.VarChar(100)
+  email        String   @unique @db.VarChar(150)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  role         String?  @default("operator") @db.VarChar(20)
+  isActive     Boolean? @default(true) @map("is_active")
+  tokenVersion Int?     @default(0) @map("token_version")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  tenant         Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-
-  @@index([email])
+  @@index([email], map: "idx_users_email")
   @@map("users")
 }
 
@@ -62,48 +56,50 @@ model ParkingSession {
   model            String    @db.VarChar(80)
   locale           String    @db.VarChar(80)
   isParked         Boolean   @default(true) @map("is_parked")
-  entryTime        DateTime  @default(now()) @map("entry_time") @db.Timestamptz()
-  exitTime         DateTime? @map("exit_time") @db.Timestamptz()
+  entryTime        DateTime  @default(now()) @map("entry_time") @db.Timestamptz(6)
+  exitTime         DateTime? @map("exit_time") @db.Timestamptz(6)
   totalTimeMinutes Int?      @map("total_time_minutes")
   totalPrice       Decimal?  @map("total_price") @db.Decimal(10, 2)
-  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  tenant           Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  tenant           Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-
-  @@index([tenantId, licensePlate])
+  @@index([tenantId, licensePlate], map: "idx_sessions_tenant_plate")
   @@map("parking_sessions")
 }
 
 model ParkingPrice {
-  id                      String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenantId                String   @unique @map("tenant_id") @db.Uuid
-  quickStopPrice          Decimal  @map("quick_stop_price") @db.Decimal(10, 2)
-  untilTimePrice          Decimal  @map("until_time_price") @db.Decimal(10, 2)
-  extraHourPrice          Decimal  @map("extra_hour_price") @db.Decimal(10, 2)
-  quickStopLimitMinutes   Int      @map("quick_stop_limit_minutes")
-  parkingHours            Int      @map("parking_hours")
-  createdAt               DateTime @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt               DateTime @updatedAt @map("updated_at") @db.Timestamptz()
-
-  tenant                  Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId              String   @unique(map: "unique_tenant_price") @map("tenant_id") @db.Uuid
+  quickStopPrice        Decimal  @map("quick_stop_price") @db.Decimal(10, 2)
+  untilTimePrice        Decimal  @map("until_time_price") @db.Decimal(10, 2)
+  extraHourPrice        Decimal  @map("extra_hour_price") @db.Decimal(10, 2)
+  quickStopLimitMinutes Int      @map("quick_stop_limit_minutes")
+  parkingHours          Int      @map("parking_hours")
+  createdAt             DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt             DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
   @@map("parking_prices")
 }
 
 model ProductService {
-  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  tenantId     String      @map("tenant_id") @db.Uuid
-  title        String      @db.VarChar(100)
-  description  String?
-  amount       Int?        @default(0)
-  price        Decimal     @db.Decimal(10, 2)
-  type         ProductType
-  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt    DateTime    @updatedAt @map("updated_at") @db.Timestamptz()
+  id          String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tenantId    String            @map("tenant_id") @db.Uuid
+  title       String            @db.VarChar(100)
+  description String?
+  amount      Int?              @default(0)
+  price       Decimal           @db.Decimal(10, 2)
+  type        product_type_enum
+  createdAt   DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  tenant       Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-
-  @@index([tenantId])
+  @@index([tenantId], map: "idx_products_tenant")
   @@map("products_services")
+}
+
+enum product_type_enum {
+  product
+  service
 }

@@ -1,6 +1,5 @@
-import prisma from "../../lib/prisma";
+import prisma from "../../config/prisma.js";
 import bcrypt from "bcrypt";
-import { Role } from "@prisma/client";
 export interface CreateTenantDTO {
     tenantData: {
         businessName: string;
@@ -50,13 +49,14 @@ export class AuthService {
                         name: data.adminData.name,
                         email: data.adminData.email,
                         passwordHash: passwordHash,
-                        role: Role.ADMIN,
+                        role: "ADMIN",
                         createdAt: data.adminData.createdAt,
                     }
                 }
             }
         })
-
+        console.log(newTenant);
+        
         return newTenant;
     }
 }
