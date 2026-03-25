@@ -1,19 +1,9 @@
 import prisma from "../../config/prisma.js";
 import bcrypt from "bcrypt";
-export interface CreateTenantDTO {
-    tenantData: {
-        businessName: string;
-        document: string;
-    },
-    adminData: {
-        name: string;
-        email: string;
-        password: string;
-        role: string;
-        createdAt: Date;
-    }
+import jwt from "jsonwebtoken";
+import { env } from "../../config/env.js";
+import { CreateTenantDTO } from "./auth.schema.js";
 
-}
 
 export class AuthService {
     async registerTenant(data: CreateTenantDTO){
@@ -55,8 +45,43 @@ export class AuthService {
                 }
             }
         })
-        console.log(newTenant);
         
         return newTenant;
     }
+
+    async Login(email: string, password: string) {
+
+
+        const user = await prisma.user.findUnique({
+            where: {
+                email: email,
+            }
+        })
+        
+        if(!user){
+            throw new Error("Invalid email or password");
+        }
+
+        const passwordMatch = await bcrypt.compare(password, user.passwordHash);
+        
+        if(!passwordMatch){
+            throw new Error("Invalid email or password");
+        }
+
+        const { passwordHash, ...userWithoutPassword } = user;
+
+        if(!env.jwtSecret) {
+            throw new Error("JWT secret is not defined in environment variables");
+        }
+
+        const token = jwt.sign(userWithoutPassword, env.jwtSecret, {
+            expiresIn: "6h",
+        })
+
+        return {
+            ...userWithoutPassword,
+            token
+        };
+    }
+
 }

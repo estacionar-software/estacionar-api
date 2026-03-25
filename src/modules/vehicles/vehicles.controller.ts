@@ -1,5 +1,5 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { VehicleService, CreateVehicleDTO } from "./vehicles.service";
+import { VehicleService, CreateVehicleDTO } from "./vehicles.service.js";
 
 const vehiclesService = new VehicleService();
 

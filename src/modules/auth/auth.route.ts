@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { AuthController } from "./auth.controller.js";
+import { CreateTenantController, LoginController } from "./auth.controller.js";
 
 export async function AuthRoutes(app: FastifyInstance) {
     app.post("/tenant", {
@@ -28,5 +28,18 @@ export async function AuthRoutes(app: FastifyInstance) {
                 required: ["tenantData", "adminData"],
             },
         },
-    }, AuthController);
+    }, CreateTenantController);
+
+    app.post("/login", {
+        schema: {
+            body: {
+                type: "object",
+                properties: {
+                    email: { type: "string" },
+                    password: { type: "string" }
+                },
+                required: ["email", "password"]
+            }
+        },
+    }, LoginController)
 }

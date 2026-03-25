@@ -8,4 +8,5 @@ export const env = {
   dbName: process.env.DB_NAME || 'estacionar-db',
   port: Number(process.env.PORT) || 3000,
   dbUrl: process.env.DATABASE_URL || 'postgresql://${env.dbUser}:${env.dbPassword}@${env.dbHost}:${env.dbPort}/${env.dbName}?schema=public',
+  jwtSecret: process.env.JWT_SECRET,
 };
